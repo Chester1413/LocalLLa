@@ -116,9 +116,31 @@ def send_request_to_oobabooga(folder_path, prompt, history):
 def save_conversation_to_docx(history, filename="conversation.docx"):
     doc = DocxDocument()
     for message in history:
-        role = "User" if message["role"] == "user" else "Assistant"
-        doc.add_paragraph(f"{role}: {message['content']}")
+        if message["role"] == "user":
+            # 只保存使用者的原始 prompt，不包括資料夾內容
+            original_prompt = message['content'].split("\n\n資料夾內容：")[0]
+            doc.add_paragraph(f"User: {original_prompt}")
+        elif message["role"] == "assistant":
+            doc.add_paragraph(f"Assistant: {message['content']}")
     doc.save(filename)
     print(f"對話已保存到 {filename}")
 
 
+
+    def main():
+        history = []
+        first_time = True
+        while True:
+            folder_path, prompt = get_user_input(first_time)
+            first_time = False
+            if prompt.lower() == "exit":
+                print("退出對話。")
+                break
+            elif prompt.lower() == "exit2":
+                save_conversation_to_docx(history)
+                print("退出並保存對話。")
+                break
+            send_request_to_oobabooga(folder_path, prompt, history)
+
+    if __name__ == "__main__":
+        main()
